@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions Ledger{% endblock %}
+{% block meta_desc %}View, search, and manage all your FinPilot AI transactions — income and expenses.{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('transaction_import') }}" class="btn btn-secondary" id="hdr-import-csv-btn">
+    <i class="fa-solid fa-file-import"></i> Import CSV
+</a>
+<a href="{{ url_for('transaction_add') }}" class="btn btn-primary" id="hdr-add-tx-btn">
+    <i class="fa-solid fa-plus"></i> Add Transaction
+</a>
+{% endblock %}
+
+{% block content %}
+<main class="page-wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="page-section-header">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span class="crumb-current">Transactions Ledger</span>
+        </nav>
+        <div class="page-title-row">
+            <div>
+                <h1><i class="fa-solid fa-receipt text-cyan" style="font-size:1.4rem;"></i> Transactions Ledger</h1>
+                <p class="page-subtitle">Complete record of all your income credits and outgoing expenses.</p>
+            </div>
+            <a href="{{ url_for('transaction_add') }}" class="btn btn-primary" id="page-add-tx-btn">
+                <i class="fa-solid fa-plus"></i> Add New Transaction
+            </a>
+            <a href="{{ url_for('transaction_import') }}" class="btn btn-secondary" id="page-import-csv-btn">
+                <i class="fa-solid fa-file-import"></i> Import CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- SUMMARY PILLS -->
+    <div class="tx-summary-strip glass-card" id="tx-summary-strip" aria-label="Transaction summary">
+        <div class="summary-pill-item">
+            <span class="summary-pill-icon text-emerald"><i class="fa-solid fa-arrow-trend-up"></i></span>
+            <div>
+                <span class="summary-pill-label">Total Income</span>
+                <span class="summary-pill-val" id="sum-income">₹—</span>
+            </div>
+        </div>
+        <div class="summary-pill-divider"></div>
+        <div class="summary-pill-item">
+            <span class="summary-pill-icon text-rose"><i class="fa-solid fa-arrow-trend-down"></i></span>
+            <div>
+                <span class="summary-pill-label">Total Expenses</span>
+                <span class="summary-pill-val" id="sum-expense">₹—</span>
+            </div>
+        </div>
+        <div class="summary-pill-divider"></div>
+        <div class="summary-pill-item">
+            <span class="summary-pill-icon text-cyan"><i class="fa-solid fa-piggy-bank"></i></span>
+            <div>
+                <span class="summary-pill-label">Net Balance</span>
+                <span class="summary-pill-val" id="sum-net">₹—</span>
+            </div>
+        </div>
+        <div class="summary-pill-divider"></div>
+        <div class="summary-pill-item">
+            <span class="summary-pill-icon text-indigo"><i class="fa-solid fa-hashtag"></i></span>
+            <div>
+                <span class="summary-pill-label">Total Records</span>
+                <span class="summary-pill-val" id="sum-count">—</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANSACTIONS TABLE CARD -->
+    <div class="glass-card">
+        <!-- TOOLBAR -->
+        <div class="tx-page-toolbar" role="search">
+            <div class="search-input-wrap" style="flex:1; max-width:360px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                <input type="text" id="tx-search-input" placeholder="Search by title, category, amount..."
+                       onkeyup="filterTransactions()" aria-label="Search transactions">
+            </div>
+            <div class="filter-wrap">
+                <select id="tx-filter-type" onchange="filterTransactions()" aria-label="Filter by type">
+                    <option value="all">All Types</option>
+                    <option value="income">📈 Incoming (+)</option>
+                    <option value="expense">📉 Expense (−)</option>
+                </select>
+            </div>
+            <div class="filter-wrap">
+                <select id="tx-filter-category" onchange="filterTransactions()" aria-label="Filter by category">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+            <span class="tx-count-badge" id="tx-count-label" aria-live="polite">— records</span>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="data-table" id="tx-full-table" aria-label="All transactions">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount (₹)</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-tbody">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding:2rem;">
+                            <span class="spinner"></span> Loading transactions...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination-row" id="pagination-row" aria-label="Pagination"></div>
+    </div>
+
+</main>
+
+<!-- EDIT TRANSACTION MODAL -->
+<div id="edit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit Transaction">
+    <div class="glass-card modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-pen-to-square text-cyan"></i> Edit Transaction</h3>
+            <button class="btn-close" onclick="closeEditModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="em-type">Type</label>
+                <select id="em-type" onchange="populateEditCatOptions(this.value)">
+                    <option value="expense">📉 Expense</option>
+                    <option value="income">📈 Income</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="em-title">Title</label>
+                <input type="text" id="em-title" placeholder="Description" maxlength="120">
+            </div>
+            <div class="form-group">
+                <label for="em-amount">Amount (₹)</label>
+                <input type="number" id="em-amount" step="0.01" min="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label for="em-category">Category</label>
+                <select id="em-category"></select>
+            </div>
+            <div class="form-group">
+                <label for="em-date">Date</label>
+                <input type="date" id="em-date">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitEdit()" id="edit-submit-btn">
+                <i class="fa-solid fa-floppy-disk"></i> Update Transaction
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/transactions.js') }}"></script>
+{% endblock %}

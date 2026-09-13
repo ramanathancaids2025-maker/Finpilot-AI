@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Savings Goals{% endblock %}
+{% block meta_desc %}Create and track savings goals with live FinPilot AI progress calculations.{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('simulator') }}" class="btn btn-secondary" id="hdr-goal-simulator-btn">
+    <i class="fa-solid fa-flask"></i> What-If Simulator
+</a>
+{% endblock %}
+
+{% block content %}
+<main class="page-wrapper">
+    <div class="page-section-header">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span class="crumb-current">Savings Goals</span>
+        </nav>
+        <div class="page-title-row">
+            <div>
+                <h1><i class="fa-solid fa-bullseye text-emerald" style="font-size:1.4rem;"></i> Savings Goals</h1>
+                <p class="page-subtitle">Set targets, track progress, and keep your next milestone visible.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="goal-form-status" class="form-status-msg hidden" role="status"></div>
+
+    <div class="goals-page-grid">
+        <form id="goal-form" class="form-card">
+            <div class="form-card-title">
+                <i class="fa-solid fa-plus text-emerald"></i> Create a Goal
+            </div>
+            <div class="form-group">
+                <label for="goal-title">Goal name</label>
+                <input type="text" id="goal-title" maxlength="120" placeholder="e.g. Emergency reserve" required>
+            </div>
+            <div class="form-group">
+                <label for="goal-target">Target amount (₹)</label>
+                <input type="number" id="goal-target" min="0.01" step="1" placeholder="500000" required>
+            </div>
+            <div class="form-group">
+                <label for="goal-current">Current saved amount (₹)</label>
+                <input type="number" id="goal-current" min="0" step="1" value="0" required>
+            </div>
+            <div class="form-group">
+                <label for="goal-date">Target date <span class="text-muted">(optional)</span></label>
+                <input type="date" id="goal-date">
+            </div>
+            <div class="form-actions-row">
+                <button type="reset" class="btn btn-secondary" id="goal-reset-btn">Clear</button>
+                <button type="submit" class="btn btn-primary" id="goal-submit-btn">
+                    <i class="fa-solid fa-plus"></i> Add Goal
+                </button>
+            </div>
+        </form>
+
+        <section class="goals-list" aria-label="Your savings goals">
+            <div class="glass-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">Your Goals</h2>
+                        <p class="card-subheading">Live progress from your SQLite account data</p>
+                    </div>
+                    <span id="goal-count" class="badge badge-neutral">0 goals</span>
+                </div>
+                <div id="goals-list-content">
+                    <p class="text-muted text-sm">Loading goals...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/goals.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Add Transaction{% endblock %}
+{% block meta_desc %}Add a new income or expense transaction to your FinPilot AI financial ledger.{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('transactions') }}" class="btn btn-secondary" id="hdr-back-btn">
+    <i class="fa-solid fa-arrow-left"></i> Back to Transactions
+</a>
+{% endblock %}
+
+{% block content %}
+<main class="page-wrapper" style="max-width: 980px;">
+
+    <!-- PAGE HEADER -->
+    <div class="page-section-header">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <a href="{{ url_for('transactions') }}">Transactions</a>
+            <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span class="crumb-current">Add New</span>
+        </nav>
+        <div class="page-title-row">
+            <div>
+                <h1><i class="fa-solid fa-plus-circle text-emerald" style="font-size:1.4rem;"></i> Add New Transaction</h1>
+                <p class="page-subtitle">Record a new income credit or outgoing expense.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-page-grid">
+
+        <!-- FORM CARD -->
+        <div class="form-card">
+            <div class="form-card-title">
+                <i class="fa-solid fa-pen-to-square text-cyan"></i> Transaction Details
+            </div>
+
+            <!-- Status message -->
+            <div id="form-status" class="form-status-msg hidden" role="alert"></div>
+
+            <div class="form-group">
+                <label for="tx-type">Transaction Type</label>
+                <select id="tx-type" onchange="onTxTypeChange()" aria-required="true">
+                    <option value="expense">📉 Outgoing Expense (−)</option>
+                    <option value="income">📈 Incoming Income / Credit (+)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tx-title">Title / Description <span class="text-rose">*</span></label>
+                <input type="text" id="tx-title"
+                       placeholder="e.g. Monthly Salary Credit / Grocery Shopping"
+                       maxlength="120" aria-required="true">
+            </div>
+
+            <div class="form-group">
+                <label for="tx-amount">Amount (₹ INR) <span class="text-rose">*</span></label>
+                <input type="number" step="0.01" min="0.01" id="tx-amount"
+                       placeholder="5000.00" aria-required="true">
+            </div>
+
+            <div class="form-group">
+                <label for="tx-category">Category</label>
+                <select id="tx-category" aria-required="true">
+                    <!-- Populated by JS on type change -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tx-date">Date <span class="text-rose">*</span></label>
+                <input type="date" id="tx-date" aria-required="true">
+            </div>
+
+            <div class="form-actions-row">
+                <a href="{{ url_for('transactions') }}" class="btn btn-secondary" id="cancel-add-btn">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </a>
+                <button class="btn btn-primary" id="tx-submit-btn" onclick="submitAddTransaction()">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Transaction
+                </button>
+            </div>
+        </div>
+
+        <!-- TIPS SIDEBAR -->
+        <aside class="tip-card" aria-label="Tips for adding transactions">
+            <div class="tip-card-title">
+                <i class="fa-solid fa-lightbulb"></i> Tips
+            </div>
+
+            <div class="tip-item">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Select <strong>Income</strong> for salary, freelance earnings, bonuses, or any credit to your account.</span>
+            </div>
+
+            <div class="tip-item">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Select <strong>Expense</strong> for bills, groceries, subscriptions, EMIs and any debit from your account.</span>
+            </div>
+
+            <div class="tip-item">
+                <i class="fa-solid fa-robot text-cyan"></i>
+                <span>Every transaction you add is instantly fed into the FinPilot ML models — forecasts and health score update in real time.</span>
+            </div>
+
+            <div class="tip-item">
+                <i class="fa-solid fa-shield-halved text-emerald"></i>
+                <span>Your savings balance is automatically adjusted — income increases it, expenses reduce it.</span>
+            </div>
+
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.25rem;">
+                <div class="tip-card-title" style="margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-tag"></i> Expense Categories
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:0.4rem;" id="cat-preview-chips">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/transaction_form.js') }}"></script>
+<script>
+    // Set today's date as default
+    document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+    // Initialize category dropdown
+    onTxTypeChange();
+</script>
+{% endblock %}

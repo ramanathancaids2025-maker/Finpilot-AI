@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase Check{% endblock %}
+{% block meta_desc %}FinPilot AI Purchase Affordability Evaluator — Check if you can afford any item based on your live financial health.{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('index') }}" class="btn btn-secondary" id="hdr-back-dashboard-btn">
+    <i class="fa-solid fa-gauge-high"></i> Dashboard
+</a>
+<button class="btn btn-primary glow-btn" onclick="evaluatePurchase()" id="hdr-evaluate-btn">
+    <i class="fa-solid fa-microchip"></i> Evaluate
+</button>
+{% endblock %}
+
+{% block content %}
+<main class="page-wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="page-section-header">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span class="crumb-current">Purchase Check</span>
+        </nav>
+        <div class="page-title-row">
+            <div>
+                <h1><i class="fa-solid fa-cart-shopping text-cyan" style="font-size:1.4rem;"></i> Purchase Affordability Evaluator</h1>
+                <p class="page-subtitle">Run any planned purchase against your live ML Financial Health &amp; Savings Models.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="purchase-page-grid">
+
+        <!-- INPUT FORM -->
+        <div class="form-card">
+            <div class="form-card-title">
+                <i class="fa-solid fa-pen-to-square text-cyan"></i> Item Details
+            </div>
+
+            <div class="form-group">
+                <label for="item-name">Item Name</label>
+                <input type="text" id="item-name" placeholder="e.g. PlayStation 5 / MacBook Pro" value="PlayStation 5">
+            </div>
+
+            <div class="form-group">
+                <label for="item-price">Price (&#8377; INR)</label>
+                <input type="number" id="item-price" placeholder="50000" value="50000" step="100" min="1">
+            </div>
+
+            <div class="form-actions-row">
+                <button class="btn btn-primary glow-btn" onclick="evaluatePurchase()" id="evaluate-btn">
+                    <i class="fa-solid fa-microchip"></i> Evaluate Affordability
+                </button>
+            </div>
+
+            <!-- QUICK PRESETS -->
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                <div class="tip-card-title" style="margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-bolt text-amber"></i> Quick Presets
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <button class="chip-btn" onclick="setPreset('PlayStation 5', 54999)">&#127918; PS5 &mdash; &#8377;54,999</button>
+                    <button class="chip-btn" onclick="setPreset('MacBook Pro M3', 199900)">&#128187; MacBook Pro &mdash; &#8377;1,99,900</button>
+                    <button class="chip-btn" onclick="setPreset('iPhone 15 Pro', 134900)">&#128241; iPhone 15 Pro &mdash; &#8377;1,34,900</button>
+                    <button class="chip-btn" onclick="setPreset('Royal Enfield Bike', 200000)">&#127949; Royal Enfield &mdash; &#8377;2,00,000</button>
+                    <button class="chip-btn" onclick="setPreset('Japan Vacation', 150000)">&#9992; Japan Trip &mdash; &#8377;1,50,000</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT PANEL -->
+        <div class="purchase-result-panel" id="purchase-result-panel">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:1rem; color:var(--text-muted); text-align:center; padding:2rem 0; min-height:280px;">
+                <i class="fa-solid fa-microchip" style="font-size:3rem; color:var(--border-color);"></i>
+                <div>
+                    <div style="font-size:1rem; font-weight:700; margin-bottom:0.3rem;">Ready to Evaluate</div>
+                    <div style="font-size:0.82rem;">Enter an item and price, then click <strong>Evaluate Affordability</strong> to run the ML analysis.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="glass-card" style="padding: 1.5rem;">
+        <div class="card-header" style="margin-bottom: 1rem;">
+            <h2 class="card-heading"><i class="fa-solid fa-diagram-project text-indigo"></i> How the Purchase Decision Engine Works</h2>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.025); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:1rem;">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--cyan); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.5rem;">[Step 1] Health Analysis</div>
+                <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">The Random Forest ML model evaluates your current financial health score (0-100) based on income, expenses, and savings ratio.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.025); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:1rem;">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--amber); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.5rem;">[Step 2] Affordability Check</div>
+                <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">The Purchase Decision Agent calculates price-to-savings ratio, monthly surplus impact, and safe budget ceiling for the purchase.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.025); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:1rem;">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--emerald); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.5rem;">[Step 3] AI Verdict</div>
+                <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">The Validation Agent cross-checks rules and generates a personalized recommendation: Approved, Proceed with Caution, or Declined.</p>
+            </div>
+        </div>
+    </div>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setPreset(name, price) {
+    document.getElementById('item-name').value = name;
+    document.getElementById('item-price').value = price;
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+async function evaluatePurchase() {
+    const itemName = document.getElementById('item-name').value.trim() || 'Item';
+    const itemPrice = parseFloat(document.getElementById('item-price').value) || 50000;
+    const btn = document.getElementById('evaluate-btn');
+    const hdrBtn = document.getElementById('hdr-evaluate-btn');
+    const panel = document.getElementById('purchase-result-panel');
+
+    btn.disabled = true;
+    if (hdrBtn) hdrBtn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Evaluating...';
+
+    panel.className = 'purchase-result-panel';
+    panel.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;color:var(--text-muted);text-align:center;padding:2rem 0;min-height:280px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:2.5rem;color:var(--cyan);"></i>
+            <div style="font-size:0.9rem;">Running ML agents on your financial profile...</div>
+        </div>`;
+
+    try {
+        const response = await fetch('/api/predict_purchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_name: itemName, item_price: itemPrice })
+        });
+        const data = await response.json();
+        const p = data.purchase_analysis;
+
+        const colorMap = { 'emerald': 'approved', 'amber': '', 'rose': 'declined', 'red': 'declined' };
+        panel.className = 'purchase-result-panel ' + (colorMap[p.theme_color] || '');
+
+        const badgeColorMap = { 'emerald': 'badge-emerald', 'amber': 'badge-amber', 'rose': 'badge-rose', 'red': 'badge-rose' };
+        const badgeClass = badgeColorMap[p.theme_color] || 'badge-neutral';
+
+        const iconMap = {
+            'emerald': '<i class="fa-solid fa-circle-check text-emerald" style="font-size:3rem;"></i>',
+            'amber':   '<i class="fa-solid fa-triangle-exclamation text-amber" style="font-size:3rem;"></i>',
+            'rose':    '<i class="fa-solid fa-circle-xmark text-rose" style="font-size:3rem;"></i>',
+            'red':     '<i class="fa-solid fa-circle-xmark text-rose" style="font-size:3rem;"></i>'
+        };
+        const statusIcon = iconMap[p.theme_color] || iconMap['amber'];
+
+        panel.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:1.25rem;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
+                    <div>
+                        <div style="font-size:1.25rem;font-weight:800;">${escHtml(p.item)}</div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);">&#8377;${p.price.toLocaleString('en-IN')}</div>
+                    </div>
+                    <span class="badge ${badgeClass}" style="font-size:0.8rem;padding:0.35rem 0.9rem;">${escHtml(p.status)}</span>
+                </div>
+                <div style="display:flex;justify-content:center;padding:1rem 0;">${statusIcon}</div>
+                <div style="font-size:0.95rem;font-weight:700;text-align:center;line-height:1.4;">${escHtml(p.recommendation)}</div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:1rem;">
+                    <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">Impact Analysis</div>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.83rem;">
+                            <span class="text-muted">Post-Purchase Savings</span>
+                            <span class="font-bold">&#8377;${p.impact.post_purchase_savings.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.83rem;">
+                            <span class="text-muted">Recovery Duration</span>
+                            <span class="font-bold">${p.impact.months_to_recoup} Months</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.83rem;">
+                            <span class="text-muted">Safe Budget Ceiling</span>
+                            <span class="font-bold text-emerald">&#8377;${p.impact.max_safe_budget.toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+                </div>
+                ${data.ai_insight ? `<div style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.2);border-radius:var(--radius-sm);padding:0.85rem;font-size:0.82rem;color:var(--text-muted);line-height:1.5;"><i class="fa-solid fa-robot text-indigo"></i> ${escHtml(data.ai_insight)}</div>` : ''}
+            </div>`;
+
+    } catch (err) {
+        panel.className = 'purchase-result-panel';
+        panel.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;text-align:center;padding:2rem 0;min-height:280px;">
+                <i class="fa-solid fa-triangle-exclamation text-rose" style="font-size:2.5rem;"></i>
+                <div style="font-size:0.9rem;color:var(--rose);">Error evaluating purchase. Please check the server logs.</div>
+            </div>`;
+    } finally {
+        btn.disabled = false;
+        if (hdrBtn) hdrBtn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-microchip"></i> Evaluate Affordability';
+    }
+}
+</script>
+{% endblock %}
+

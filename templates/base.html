@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FinPilot AI{% endblock %} — Multi-Agent Financial Assistant</title>
+    <meta name="description" content="{% block meta_desc %}FinPilot AI - Intelligent multi-agent financial management powered by local ML models.{% endblock %}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Chart.js (only needed on dashboard, but loaded globally for convenience) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="dark-theme">
+
+    <!-- ===== TOP NAVIGATION HEADER ===== -->
+    <header class="top-header">
+        <div class="header-left">
+            <a href="{{ url_for('index') }}" class="logo-anchor">
+                <div class="logo-container">
+                    <div class="logo-icon"><i class="fa-solid fa-compass-drafting"></i></div>
+                    <div class="logo-text">
+                        <span class="brand-title">FinPilot<span class="accent-text">AI</span></span>
+                    </div>
+                </div>
+            </a>
+            <div class="system-status-chip">
+                <span class="pulse-dot"></span>
+                <span class="status-label">FinPilot AI Active</span>
+            </div>
+        </div>
+
+        <!-- Centre navigation -->
+        <nav class="main-nav" aria-label="Primary navigation">
+            <a href="{{ url_for('index') }}" id="nav-link-dashboard"
+               class="nav-link {{ 'nav-active' if page_name == 'dashboard' else '' }}"
+               aria-current="{{ 'page' if page_name == 'dashboard' else 'false' }}">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+            <a href="{{ url_for('transactions') }}" id="nav-link-transactions"
+               class="nav-link {{ 'nav-active' if page_name == 'transactions' else '' }}"
+               aria-current="{{ 'page' if page_name == 'transactions' else 'false' }}">
+                <i class="fa-solid fa-receipt"></i> Transactions
+            </a>
+            <a href="{{ url_for('goals') }}" id="nav-link-goals"
+               class="nav-link {{ 'nav-active' if page_name == 'goals' else '' }}"
+               aria-current="{{ 'page' if page_name == 'goals' else 'false' }}">
+                <i class="fa-solid fa-bullseye"></i> Goals
+            </a>
+            <a href="{{ url_for('simulator') }}" id="nav-link-simulator"
+               class="nav-link {{ 'nav-active' if page_name == 'simulator' else '' }}"
+               aria-current="{{ 'page' if page_name == 'simulator' else 'false' }}">
+                <i class="fa-solid fa-flask"></i> What-If
+            </a>
+            <a href="{{ url_for('purchase_check') }}" id="nav-link-purchase"
+               class="nav-link {{ 'nav-active' if page_name == 'purchase' else '' }}"
+               aria-current="{{ 'page' if page_name == 'purchase' else 'false' }}">
+                <i class="fa-solid fa-cart-shopping"></i> Purchase Check
+            </a>
+        </nav>
+
+        <!-- Right: live metrics + page actions -->
+        <div class="header-right">
+            <div class="metric-pill">
+                <i class="fa-solid fa-vault text-emerald"></i>
+                <span class="pill-label">Savings:</span>
+                <span id="nav-savings-val" class="pill-value">₹—</span>
+            </div>
+            <div class="metric-pill">
+                <i class="fa-solid fa-heart-pulse text-cyan"></i>
+                <span class="pill-label">Health:</span>
+                <span id="nav-health-val" class="pill-value">— / 100</span>
+            </div>
+            {% block header_actions %}{% endblock %}
+        </div>
+    </header>
+
+    <!-- ===== PAGE CONTENT ===== -->
+    {% block content %}{% endblock %}
+
+    <!-- Toast container (shared) -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- ===== SHARED BASE SCRIPTS ===== -->
+    <script>
+    /* Lightweight header metric loader — calls /api/summary (fast, no ML) */
+    async function loadHeaderSummary() {
+        try {
+            const res = await fetch('/api/summary');
+            if (!res.ok) return;
+            const d = await res.json();
+            const sv = document.getElementById('nav-savings-val');
+            const hv = document.getElementById('nav-health-val');
+            if (sv && d.current_savings !== undefined) {
+                sv.innerText = '₹' + parseFloat(d.current_savings)
+                    .toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            }
+            if (hv && d.health_score !== undefined) {
+                const s = d.health_score;
+                hv.innerText = s + ' / 100';
+                hv.className = 'pill-value ' + (s >= 80 ? 'text-emerald' : s >= 60 ? 'text-cyan' : 'text-amber');
+            }
+        } catch(e) { /* silent fail */ }
+    }
+
+    /* Global toast helper */
+    function showToast(msg, type = 'success') {
+        const c = document.getElementById('toast-container');
+        if (!c) return;
+        const t = document.createElement('div');
+        t.className = `toast toast-${type}`;
+        const icon = type === 'success'
+            ? '<i class="fa-solid fa-circle-check text-emerald"></i>'
+            : '<i class="fa-solid fa-triangle-exclamation text-rose"></i>';
+        t.innerHTML = icon + ' ' + msg;
+        c.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+    }
+
+    /* HTML escape helper (available on all pages) */
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, m =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+        );
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHeaderSummary);
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

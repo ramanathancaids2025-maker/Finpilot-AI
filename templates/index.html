@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block meta_desc %}FinPilot AI Dashboard — Real-time financial health, savings forecast and AI budget optimization.{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-primary glow-btn" onclick="toggleChatDrawer()" id="hdr-chat-btn">
+    <i class="fa-solid fa-robot"></i> Ask FinPilot AI
+</button>
+{% endblock %}
+
+{% block content %}
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="dashboard-container">
+
+        <!-- AI INSIGHT OF THE DAY HERO BANNER -->
+        <section class="glass-card insight-banner" aria-label="AI Insight of the Day">
+            <div class="banner-icon">
+                <i class="fa-solid fa-bolt-lightning"></i>
+            </div>
+            <div class="banner-content">
+                <div class="banner-tag">AI INSIGHT OF THE DAY</div>
+                <div id="ai-insight-text" class="banner-text">
+                    Initializing multi-agent analysis engine...
+                </div>
+            </div>
+            <button class="btn btn-icon" onclick="loadDashboard()" title="Refresh dashboard" id="refresh-dashboard-btn">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+        </section>
+
+        <!-- TOP METRICS GRID -->
+        <section class="grid-4-col" aria-label="Key financial metrics">
+
+            <!-- HEALTH SCORE CARD -->
+            <div class="glass-card metric-card hero-health-card">
+                <div class="card-header">
+                    <span class="card-title">Financial Health</span>
+                    <span id="health-tier-badge" class="badge badge-emerald">Evaluating</span>
+                </div>
+                <div class="gauge-wrapper">
+                    <svg class="radial-gauge" viewBox="0 0 100 100" role="img" aria-label="Health score gauge">
+                        <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                        <circle id="gauge-fill" class="gauge-fill" cx="50" cy="50" r="40"
+                                stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                    </svg>
+                    <div class="gauge-center">
+                        <span id="gauge-score-val" class="score-num">0</span>
+                        <span class="score-denom">/ 100</span>
+                    </div>
+                </div>
+                <div class="card-sub-info">
+                    <div class="sub-info-item">
+                        <span class="info-lbl">Risk Level</span>
+                        <span id="risk-level-val" class="info-val">Low Risk</span>
+                    </div>
+                    <div class="sub-info-item">
+                        <span class="info-lbl">Emergency Cushion</span>
+                        <span id="runway-val" class="info-val">0 Months</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONTHLY INCOME & SURPLUS -->
+            <div class="glass-card metric-card">
+                <div class="card-header">
+                    <span class="card-title">Monthly Income &amp; Surplus</span>
+                    <i class="fa-solid fa-money-bill-trend-up card-icon text-cyan"></i>
+                </div>
+                <div class="big-stat" id="income-val">₹0.00</div>
+                <div class="stat-change text-emerald">
+                    <i class="fa-solid fa-arrow-up-right-dots"></i>
+                    Net Surplus: <span id="surplus-val">₹0.00</span>/mo
+                </div>
+                <div class="progress-bar-container">
+                    <div class="bar-lbl">
+                        <span>Expense Ratio</span>
+                        <span id="exp-ratio-pct">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="exp-ratio-fill" class="progress-fill fill-cyan" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6-MONTH SAVINGS FORECAST -->
+            <div class="glass-card metric-card">
+                <div class="card-header">
+                    <span class="card-title">ML Savings Forecast</span>
+                    <i class="fa-solid fa-chart-line card-icon text-indigo"></i>
+                </div>
+                <div class="big-stat" id="forecast-6m-val">₹0.00</div>
+                <div class="stat-change text-indigo">
+                    <i class="fa-solid fa-crystal-ball"></i> Projected 6-Month Reserves
+                </div>
+                <div class="forecast-pills-row">
+                    <div class="mini-pill"><span>3M:</span> <strong id="forecast-3m-val">₹0</strong></div>
+                    <div class="mini-pill"><span>12M:</span> <strong id="forecast-12m-val">₹0</strong></div>
+                </div>
+            </div>
+
+            <!-- TOP EXPENSE CATEGORY -->
+            <div class="glass-card metric-card">
+                <div class="card-header">
+                    <span class="card-title">Top Expense Driver</span>
+                    <i class="fa-solid fa-fire card-icon text-amber"></i>
+                </div>
+                <div class="big-stat text-amber" id="top-cat-val">None</div>
+                <div class="stat-change text-muted" id="top-cat-amt">
+                    ₹0.00 / month average
+                </div>
+                <div class="action-recommendation">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    Lowering by 15% saves <span id="top-cat-savings">₹0</span>/yr
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CHARTS SECTION -->
+        <section class="grid-2-col" aria-label="Financial charts">
+
+            <!-- EXPENSE DISTRIBUTION CHART -->
+            <div class="glass-card chart-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">Expense Distribution</h2>
+                        <p class="card-subheading">Real-time category spending breakdown</p>
+                    </div>
+                    <span class="badge badge-neutral"><i class="fa-solid fa-chart-pie"></i> Categorized</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- SAVINGS FORECAST TRAJECTORY CHART -->
+            <div class="glass-card chart-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">Savings Growth Trajectory</h2>
+                        <p class="card-subheading">Gradient Boosting 12-Month Projection</p>
+                    </div>
+                    <span class="badge badge-indigo"><i class="fa-solid fa-brain"></i> Model 4</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- MULTI-AGENT PIPELINE VISUALIZER -->
+        <section class="glass-card agent-pipeline-card" aria-label="Multi-agent execution pipeline">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-heading">
+                        <i class="fa-solid fa-diagram-project text-cyan"></i>
+                        Multi-Agent Collaborative Execution Pipeline
+                    </h2>
+                    <p class="card-subheading">Real-time visual monitoring of FinPilot AI's sub-agents</p>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="simulateAgentRun()" id="test-pipeline-btn">
+                    <i class="fa-solid fa-rotate"></i> Run Real Pipeline
+                </button>
+            </div>
+            <div class="agent-timeline" id="agent-timeline">
+                <!-- Dynamically populated by agent_flow.js -->
+            </div>
+        </section>
+
+        <!-- GOALS & WHAT-IF SHORTCUTS -->
+        <section class="grid-2-col" aria-label="Goals and what-if tools">
+            <div class="glass-card dashboard-goals-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">Savings Goals</h2>
+                        <p class="card-subheading">Track progress toward your active goals</p>
+                    </div>
+                    <a href="{{ url_for('goals') }}" class="btn btn-sm btn-secondary">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Manage
+                    </a>
+                </div>
+                <div id="dashboard-goals-list" class="dashboard-goals-list">
+                    <span class="text-muted text-sm">Loading goals...</span>
+                </div>
+            </div>
+            <div class="glass-card dashboard-tool-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">What-If Simulator</h2>
+                        <p class="card-subheading">Explore changes to income and spending</p>
+                    </div>
+                    <i class="fa-solid fa-flask card-icon text-cyan"></i>
+                </div>
+                <p class="text-sm text-muted">Compare your current surplus with a live scenario and see how it could accelerate your goals.</p>
+                <a href="{{ url_for('simulator') }}" class="btn btn-primary dashboard-tool-link">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Run a Scenario
+                </a>
+            </div>
+        </section>
+
+        <!-- BOTTOM GRID: BUDGET OPTIMIZATION & TRANSACTIONS -->
+        <section class="grid-2-col" aria-label="Budget and transactions">
+
+            <!-- BUDGET OPTIMIZATION -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">AI Budget Optimization</h2>
+                        <p class="card-subheading" id="budget-strategy-lbl">50/30/20 Strategy</p>
+                    </div>
+                    <span id="potential-savings-badge" class="badge badge-emerald">+₹0/mo Savings Potential</span>
+                </div>
+                <div class="budget-items-list" id="budget-items-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- RECENT TRANSACTIONS TABLE -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-heading">Transactions Ledger</h2>
+                        <p class="card-subheading">Recent credits (+) &amp; expenses (−)</p>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-secondary" id="view-all-tx-btn">
+                            <i class="fa-solid fa-list"></i> View All
+                        </a>
+                        <a href="{{ url_for('transaction_add') }}" class="btn btn-sm btn-primary" id="add-tx-btn">
+                            <i class="fa-solid fa-plus"></i> Add
+                        </a>
+                    </div>
+                </div>
+
+                <!-- SEARCH & FILTER TOOLBAR -->
+                <div class="tx-toolbar">
+                    <div class="search-input-wrap">
+                        <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        <input type="text" id="tx-search-input" placeholder="Search transactions..."
+                               onkeyup="filterTransactions()" aria-label="Search transactions">
+                    </div>
+                    <div class="filter-wrap">
+                        <select id="tx-filter-type" onchange="filterTransactions()" aria-label="Filter by type">
+                            <option value="all">All Types</option>
+                            <option value="income">📈 Incoming (+)</option>
+                            <option value="expense">📉 Expense (−)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" aria-label="Recent transactions">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Amount (₹)</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- ===== INTERACTIVE AI CHAT DRAWER ===== -->
+    <div id="chat-drawer" class="chat-drawer" role="dialog" aria-label="FinPilot AI Assistant">
+        <div class="chat-drawer-header">
+            <div class="drawer-title">
+                <div class="agent-avatar"><i class="fa-solid fa-robot"></i></div>
+                <div>
+                    <h3>FinPilot AI Assistant</h3>
+                    <span class="text-muted text-xs">TF-IDF NLP + Multi-Agent Engine</span>
+                </div>
+            </div>
+            <button class="btn-close" onclick="toggleChatDrawer()" aria-label="Close chat">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="chat-prompt-chips">
+            <button class="chip-btn" onclick="sendQuickPrompt('Can I buy a PS5 for ₹50,000?')">🎮 Can I buy a PS5?</button>
+            <button class="chip-btn" onclick="sendQuickPrompt('What is my 6 month savings forecast?')">📈 6-Month Forecast</button>
+            <button class="chip-btn" onclick="sendQuickPrompt('Analyze my spending breakdown')">📊 Spending Analysis</button>
+            <button class="chip-btn" onclick="sendQuickPrompt('What is my financial health score?')">❤️ Health Score</button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
+            <div class="chat-bubble bot-bubble">
+                <div class="bubble-header">
+                    <span class="agent-name"><i class="fa-solid fa-brain text-cyan"></i> FinPilot Coordinator</span>
+                    <span class="bubble-time">Just now</span>
+                </div>
+                <div class="bubble-content">
+                    Namaste! I am your AI financial assistant. Ask me anything about your budget,
+                    salary, purchase affordability, or savings forecasts!
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-drawer-footer">
+            <div class="chat-input-row">
+                <input type="text" id="chat-input"
+                       placeholder="Ask FinPilot (e.g. Can I afford a MacBook for ₹1,20,000?)"
+                       onkeydown="if(event.key==='Enter') sendChatMessage()"
+                       aria-label="Chat input">
+                <button class="btn btn-primary" onclick="sendChatMessage()" id="chat-send-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PURCHASE EVALUATOR MODAL ===== -->
+    <div id="purchase-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Purchase Affordability Evaluator">
+        <div class="glass-card modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cart-shopping text-cyan"></i> Purchase Affordability Evaluator</h3>
+                <button class="btn-close" onclick="closePurchaseModal()" aria-label="Close modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-muted">Test any planned purchase against your ML Financial Health &amp; Savings Models.</p>
+                <div class="form-group">
+                    <label for="modal-item-name">Item Name</label>
+                    <input type="text" id="modal-item-name" placeholder="e.g. PlayStation 5 / MacBook Pro" value="PlayStation 5">
+                </div>
+                <div class="form-group">
+                    <label for="modal-item-price">Price (₹ INR)</label>
+                    <input type="number" id="modal-item-price" placeholder="50000" value="50000">
+                </div>
+                <div id="modal-purchase-result" class="purchase-result-box hidden">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePurchaseModal()">Cancel</button>
+                <a href="{{ url_for('purchase_check') }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Full Page
+                </a>
+                <button class="btn btn-primary glow-btn" onclick="runPurchaseCheck()" id="run-purchase-btn">
+                    <i class="fa-solid fa-microchip"></i> Evaluate Affordability
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/agent_flow.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% if auto_open_chat %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(toggleChatDrawer, 400);
+});
+</script>
+{% endif %}
+{% endblock %}

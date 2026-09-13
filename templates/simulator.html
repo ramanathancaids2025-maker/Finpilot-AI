@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}What-If Simulator{% endblock %}
+{% block meta_desc %}Compare live FinPilot AI financial data with income and spending what-if scenarios.{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('goals') }}" class="btn btn-secondary" id="hdr-simulator-goals-btn">
+    <i class="fa-solid fa-bullseye"></i> Savings Goals
+</a>
+{% endblock %}
+
+{% block content %}
+<main class="page-wrapper">
+    <div class="page-section-header">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span class="crumb-current">What-If Simulator</span>
+        </nav>
+        <div class="page-title-row">
+            <div>
+                <h1><i class="fa-solid fa-flask text-cyan" style="font-size:1.4rem;"></i> What-If Simulator</h1>
+                <p class="page-subtitle">Test a change against your live income, expenses, and savings goals.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="simulator-page-grid">
+        <form id="simulator-form" class="form-card">
+            <div class="form-card-title">
+                <i class="fa-solid fa-sliders text-cyan"></i> Scenario
+            </div>
+            <div class="form-group">
+                <label for="scenario-type">Scenario type</label>
+                <select id="scenario-type">
+                    <option value="category_reduction">Reduce a category</option>
+                    <option value="income_change">Change monthly income</option>
+                    <option value="expense_cut">Cut total expenses</option>
+                </select>
+            </div>
+            <div class="form-group" id="scenario-category-group">
+                <label for="scenario-category">Category</label>
+                <select id="scenario-category">
+                    <option value="Food &amp; Dining">Loading categories...</option>
+                </select>
+            </div>
+            <div class="form-group" id="scenario-percentage-group">
+                <label for="scenario-percentage">Reduction percentage</label>
+                <input type="number" id="scenario-percentage" min="0" max="100" step="1" value="20">
+            </div>
+            <div class="form-group hidden" id="scenario-amount-group">
+                <label for="scenario-amount">Monthly income change (₹)</label>
+                <input type="number" id="scenario-amount" step="100" value="10000">
+            </div>
+            <div id="simulator-status" class="form-status-msg hidden" role="status"></div>
+            <div class="form-actions-row">
+                <button type="submit" class="btn btn-primary" id="simulate-btn">
+                    <i class="fa-solid fa-play"></i> Run Simulation
+                </button>
+            </div>
+        </form>
+
+        <section class="simulator-results" aria-live="polite">
+            <div class="glass-card" id="simulator-empty-state">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:0.8rem;text-align:center;padding:2rem 0;color:var(--text-muted);">
+                    <i class="fa-solid fa-chart-line" style="font-size:2.5rem;color:var(--border-color);"></i>
+                    <strong>Ready to compare</strong>
+                    <span class="text-sm">Choose a scenario to see current surplus, simulated surplus, and goal impact.</span>
+                </div>
+            </div>
+            <div id="simulator-result" class="result-card hidden"></div>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}
