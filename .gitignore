@@ -1,9 +1,7 @@
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
-
-# Generated local application data
-backend/finpilot.db
 
 # Virtual environments and local tooling
 .venv/
@@ -13,6 +11,11 @@ env/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
+*.log
+instance/
+flask_session/
 
 # OS and editor files
 .DS_Store
